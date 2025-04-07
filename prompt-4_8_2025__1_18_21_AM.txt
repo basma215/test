@@ -1,0 +1,157 @@
+```
+import java.io.*; // Importing classes for input and output operations
+import java.util.*; // Importing utility classes
+
+public class Front { // Main class for the lexical analyzer
+
+    // Constants representing character classes
+    static final int LETTER = 0; // Represents a letter character
+    static final int DIGIT = 1; // Represents a digit character
+    static final int UNKNOWN = 99; // Represents an unknown character
+    static final int EOF = -1; // Represents end of file
+
+    // Constants representing token types
+    static final int INT_LIT = 10; // Integer literal token
+    static final int IDENT = 11; // Identifier token
+    static final int ASSIGN_OP = 20; // Assignment operator token
+    static final int ADD_OP = 21; // Addition operator token
+    static final int SUB_OP = 22; // Subtraction operator token
+    static final int MULT_OP = 23; // Multiplication operator token
+    static final int DIV_OP = 24; // Division operator token
+    static final int LEFT_PAREN = 25; // Left parenthesis token
+    static final int RIGHT_PAREN = 26; // Right parenthesis token
+
+    // Static variables for the lexer
+    static int charClass; // Current character class
+    static StringBuilder lexeme = new StringBuilder(); // Current lexeme being processed
+    static char nextChar; // Next character to be processed
+    static int nextToken; // Next token to be returned
+    static BufferedReader reader; // BufferedReader for reading input
+
+    public static void main(String[] args) { // Main method to start the program
+        try {
+            // Initialize the BufferedReader to read from "front.in" file
+            reader = new BufferedReader(new FileReader("front.in"));
+            getChar(); // Get the first character from the input
+            do {
+                lex(); // Process the input to get tokens
+            } while (nextToken != EOF); // Continue until end of file is reached
+        } catch (IOException e) { // Handle any IO exceptions
+            System.out.println("ERROR - cannot open front.in"); // Print error message if file cannot be opened
+        }
+    }
+
+    // Method to look up a character and determine its token type
+    static int lookup(char ch) {
+        switch (ch) { // Check the character
+            case '(': // If it's a left parenthesis
+                addChar(); // Add the character to the lexeme
+                nextToken = LEFT_PAREN; // Set the token type
+                break;
+            case ')': // If it's a right parenthesis
+                addChar(); // Add the character to the lexeme
+                nextToken = RIGHT_PAREN; // Set the token type
+                break;
+            case '+': // If it's an addition operator
+                addChar(); // Add the character to the lexeme
+                nextToken = ADD_OP; // Set the token type
+                break;
+            case '-': // If it's a subtraction operator
+                addChar(); // Add the character to the lexeme
+                nextToken = SUB_OP; // Set the token type
+                break;
+            case '*': // If it's a multiplication operator
+                addChar(); // Add the character to the lexeme
+                nextToken = MULT_OP; // Set the token type
+                break;
+            case '/': // If it's a division operator
+                addChar(); // Add the character to the lexeme
+                nextToken = DIV_OP; // Set the token type
+                break;
+            default: // If the character is not recognized
+                addChar(); // Add the character to the lexeme
+                nextToken = EOF; // Set token type to EOF
+                break;
+        }
+        return nextToken; // Return the determined token type
+    }
+
+    // Method to add the current character to the lexeme
+    static void addChar() {
+        lexeme.append(nextChar); // Append the next character to the lexeme
+    }
+
+    // Method to get the next character from the input
+    static void getChar() {
+        try {
+            int data = reader.read(); // Read the next character
+            if (data != -1) { // If the end of file is not reached
+                nextChar = (char) data; // Convert the data to a character
+                // Determine the character class based on the character type
+                if (Character.isLetter(nextChar)) {
+                    charClass = LETTER; // Set class to LETTER if it's a letter
+                } else if (Character.isDigit(nextChar)) {
+                    charClass = DIGIT; // Set class to DIGIT if it's a digit
+                } else {
+                    charClass = UNKNOWN; // Set class to UNKNOWN for any other character
+                }
+            } else {
+                charClass = EOF; // Set class to EOF if end of file is reached
+            }
+        } catch (IOException e) { // Handle any IO exceptions
+            charClass = EOF; // Set class to EOF on exception
+        }
+    }
+
+    // Method to skip whitespace characters
+    static void getNonBlank() {
+        while (Character.isWhitespace(nextChar)) { // While the next character is whitespace
+            getChar(); // Get the next character
+        }
+    }
+
+    // Method to perform lexical analysis and return the next token
+    static int lex() {
+        lexeme.setLength(0); // Clear the current lexeme
+        getNonBlank(); // Skip any whitespace
+
+        switch (charClass) { // Determine action based on character class
+            case LETTER: // If the character is a letter
+                addChar(); // Add the character to the lexeme
+                getChar(); // Get the next character
+                // Continue adding characters while they are letters or digits
+                while (charClass == LETTER || charClass == DIGIT) {
+                    addChar(); // Add the character to the lexeme
+                    getChar(); // Get the next character
+                }
+                nextToken = IDENT; // Set token type to IDENT
+                break;
+
+            case DIGIT: // If the character is a digit
+                addChar(); // Add the character to the lexeme
+                getChar(); // Get the next character
+                // Continue adding characters while they are digits
+                while (charClass == DIGIT) {
+                    addChar(); // Add the character to the lexeme
+                    getChar(); // Get the next character
+                }
+                nextToken = INT_LIT; // Set token type to INT_LIT
+                break;
+
+            case UNKNOWN: // If the character is unknown
+                lookup(nextChar); // Look up the character to determine its token type
+                getChar(); // Get the next character
+                break;
+
+            case EOF: // If the end of file is reached
+                nextToken = EOF; // Set token type to EOF
+                lexeme.append("EOF"); // Append "EOF" to the lexeme
+                break;
+        }
+
+        // Print the next token and lexeme for debugging purposes
+        System.out.printf("Next token is: %d, Next lexeme is %s\n", nextToken, lexeme.toString());
+        return nextToken; // Return the next token
+    }
+}
+```
